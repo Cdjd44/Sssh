@@ -1,26 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using static Sssh.FileManagement.FileHelper;
 
 namespace Sssh.FileManagement
 {
     public interface IFileHelper
     {
-        FileType Type { get; }
         IDictionary<int, double> loadFile(string filePath);
         IDictionary<int, double> Data { get; set; }
+        string GetDaysForMaxProfit(IDictionary<int, double> dict);
     }
 
     public class FileHelper : IFileHelper
     {
-        private FileType type;
         protected IDictionary<int, double> rawData;
 
-        public IDictionary<int,double> loadFile(string filePath)
+        public FileHelper() { }
+        public FileHelper(IDictionary<int, double> dict)
         {
-            IDictionary<int, double> rawData = new Dictionary<int, double>();
+            this.rawData = dict;
+        }
+        public IDictionary<int, double> loadFile(string filePath)
+        {
+            rawData = new Dictionary<int, double>();
             string rawContent = string.Empty;
             int count = 1;
 
@@ -44,16 +47,72 @@ namespace Sssh.FileManagement
             return rawData;
         }
 
+        public string GetDaysForMaxProfit(IDictionary<int, double> dict)
+        {
+            int lowestDay = 0, highestDay = 0, buyingDay = 0, sellingDay = 0;
+            double lowestPrice = 0, highestPrice = 0, buyingPrice = 0, sellingPrice = 0, profit = 0;
 
+            var keyOfMinValue = dict.Aggregate((x, y) => x.Value < y.Value ? x : y).Key;
+            var keyOfMaxValue = dict.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+
+            if (keyOfMinValue < keyOfMaxValue)
+            {
+                buyingDay = lowestDay = keyOfMinValue;
+                buyingPrice = lowestPrice = dict[keyOfMinValue];
+                sellingDay = highestDay = keyOfMaxValue;
+                sellingPrice = highestPrice = dict[keyOfMaxValue];
+            }
+            else
+            {
+                foreach (KeyValuePair<int, double> kvp in dict)
+                {
+                    if (lowestPrice == 0 || kvp.Value < lowestPrice)
+                    {
+                        lowestDay = kvp.Key;
+                        lowestPrice = kvp.Value;
+                    }
+                    else if (highestPrice == 0 || kvp.Value > highestPrice)
+                    {
+                        highestDay = kvp.Key;
+                        highestPrice = kvp.Value;
+                    }
+
+                    if (buyingPrice == 0)
+                    {
+                        buyingDay = kvp.Key;
+                        buyingPrice = kvp.Value;
+                    }
+
+                    if (sellingPrice - kvp.Value > profit)
+                    {
+                        // miss last day for buying as cannot sell within the month
+                        if (kvp.Key < dict.Count)
+                        {
+                            buyingDay = kvp.Key;
+                            buyingPrice = kvp.Value;
+                        }
+                    }
+                    else
+                    {
+                        if (buyingDay > sellingDay)
+                        {
+                            sellingDay = kvp.Key;
+                            sellingPrice = kvp.Value;
+                        }
+                    }
+                    profit = sellingPrice - buyingPrice;
+                }
+            }
+
+            profit = sellingPrice - buyingPrice;
+
+            return "<br/>Lowest: " + lowestDay + ": " + lowestPrice +
+                "<br/>Highest: " + highestDay + ": " + highestPrice +
+                "<br/>Buy Day: " + buyingDay + ": " + buyingPrice +
+                    "<br/>Sell Day: " + sellingDay + ": " + sellingPrice +
+                    "<br/>Profit: " + profit;
+        }
 
         public IDictionary<int, double> Data { get => rawData; set => rawData = value; }
-        FileType IFileHelper.Type { get => type; }
-
-        public enum FileType
-        {
-            csv,
-            txt,
-            None
-        }
     }
 }
