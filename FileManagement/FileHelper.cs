@@ -106,11 +106,11 @@ namespace Sssh.FileManagement
 
             profit = sellingPrice - buyingPrice;
 
-            return "<br/>Lowest: " + lowestDay + ": " + lowestPrice +
-                "<br/>Highest: " + highestDay + ": " + highestPrice +
-                "<br/>Buy Day: " + buyingDay + ": " + buyingPrice +
-                    "<br/>Sell Day: " + sellingDay + ": " + sellingPrice +
-                    "<br/>Profit: " + profit;
+            return "Lowest: " + lowestDay + ": " + lowestPrice +
+                ",Highest: " + highestDay + ": " + highestPrice +
+                ",Buy Day: " + buyingDay + ": " + buyingPrice +
+                    ",Sell Day: " + sellingDay + ": " + sellingPrice +
+                    ",Profit: " + profit;
         }
 
         public IDictionary<int, double> Data { get => rawData; set => rawData = value; }
